@@ -6,8 +6,8 @@ function Header() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const menuItems = [
-    { text: 'Map', link: '/' },
-    { text: 'Action', link: '/action' },
+    { text: 'Map', link: '#' },
+    { text: 'Action', link: '#action' },
     { text: 'Resources', link: '#resources' }
   ];
 

@@ -90,7 +90,6 @@ function Map({ supabase }) {
       .from('submissions')
       .insert([{
         ...newIncident,
-        region,
         created_at: new Date().toISOString()
       }]);
     
