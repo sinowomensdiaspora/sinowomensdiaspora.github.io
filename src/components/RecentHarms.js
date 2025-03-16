@@ -19,7 +19,7 @@ function RecentHarms({ incidents }) {
   return (
     <Paper sx={{ p: 2, my: 2 }}>
       <Typography variant="h6" gutterBottom>
-        最近事件
+        Recent Incidents
       </Typography>
       <List>
         {recentIncidents.map((incident) => (

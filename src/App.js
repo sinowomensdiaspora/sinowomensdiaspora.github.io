@@ -2,7 +2,10 @@ import React from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Action from './pages/Action';
-import Header from './components/Header';
+import Resources from './components/Resources';
+import About from './pages/About';
+import OneOfUs from './pages/OneOfUs';
+import Layout from './components/Layout';
 import Map from './components/Map';
 import './App.css';
 
@@ -13,13 +16,15 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 function App() {
   return (
     <Router>
-      <div className="App">
-        <Header />
+      <Layout>
         <Routes>
           <Route path="/" element={<Map supabase={supabase} />} />
           <Route path="/action" element={<Action />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/oneofus" element={<OneOfUs supabase={supabase} />} />
         </Routes>
-      </div>
+      </Layout>
     </Router>
   );
 }
