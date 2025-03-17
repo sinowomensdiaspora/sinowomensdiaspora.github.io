@@ -31,7 +31,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
-  "homepage": "https://jiezhao2002.github.io/chinesewomendiaspora",
+  "homepage": "https://chinesewomendiaspora.github.io/",
   "eslintConfig": {
     "extends": [
       "react-app",
