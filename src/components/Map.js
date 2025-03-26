@@ -333,13 +333,16 @@ function Map({ supabase }) {
                   {incident.here_happened}
                 </Typography>
                 <Typography variant="body2">{incident.description}</Typography>
+                // In your Map component, modify the "了解更多" button click handler:
                 <Button 
                   size="small" 
                   variant="outlined" 
                   sx={{ mt: 1 }}
                   onClick={() => {
+                    localStorage.setItem('selectedIncident', JSON.stringify(incident));
                     setSelectedIncident(incident);
-                    window.open(`/incident?id=${incident.id}`, '_blank');
+                    // Use a clean URL without query parameters
+                    window.open('/incident', '_blank');
                   }}
                 >
                   我想了解更多

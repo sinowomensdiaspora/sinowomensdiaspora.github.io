@@ -18,7 +18,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 function App() {
   return (
     <IncidentProvider>
-      <Router>
+      <Router basename={process.env.PUBLIC_URL}>
         <Layout>
           <Routes>
             <Route path="/" element={<Map supabase={supabase} />} />
