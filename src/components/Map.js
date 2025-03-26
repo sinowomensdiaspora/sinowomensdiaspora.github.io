@@ -19,6 +19,7 @@ import RecentHarms from './RecentHarms';
 import Resources from './Resources';
 import { Slider, Chip, Typography, CircularProgress } from '@mui/material';
 import { TypeAnimation } from 'react-type-animation';
+import { useIncident } from '../context/IncidentContext';
 
 
 const MapEvents = ({ isAddingMode, setTempMarker, setNewIncident, setShowForm }) => {
@@ -71,6 +72,8 @@ const harmTypes = [
 
 function Map({ supabase }) {
   const [incidents, setIncidents] = useState([]);
+  const [selectedIncidentId, setSelectedIncidentId] = useState(null);
+  const { setSelectedIncident } = useIncident();
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [tempMarker, setTempMarker] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -121,10 +124,7 @@ function Map({ supabase }) {
     });
   };
 
-  // 附近故事
-  // 添加新的状态变量
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedIncident, setSelectedIncident] = useState(null);
   const [showNearbyStories, setShowNearbyStories] = useState(false);
 
 
@@ -338,11 +338,11 @@ function Map({ supabase }) {
                   variant="outlined" 
                   sx={{ mt: 1 }}
                   onClick={() => {
-                    // 使用 window.open 在新标签页中打开事件详情页面
+                    setSelectedIncident(incident);
                     window.open(`/incident/${incident.id}`, '_blank');
                   }}
                 >
-                 我想了解更多
+                  我想了解更多
                 </Button>
               </Popup>
             </Marker>

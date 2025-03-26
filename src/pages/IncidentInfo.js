@@ -1,3 +1,4 @@
+// Remove unused import
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -20,16 +21,27 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+// Remove IncidentModal import since it's not used
+import { useIncident } from '../context/IncidentContext';
 
 function IncidentInfo({ supabase }) {
   const { id } = useParams();
+  const { selectedIncident, setSelectedIncident } = useIncident();
   const [incident, setIncident] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // 获取事件详情
+  // 尝试从 localStorage 获取数据
+  const storedIncident = localStorage.getItem('selectedIncident');
+  if (storedIncident) {
+    const parsedIncident = JSON.parse(storedIncident);
+    setSelectedIncident(parsedIncident);
+    setIncident(parsedIncident);
+    // 清除 localStorage
+    localStorage.removeItem('selectedIncident');
+  }
   useEffect(() => {
     const fetchIncidentDetails = async () => {
       try {
@@ -38,7 +50,7 @@ function IncidentInfo({ supabase }) {
           .select('*')
           .eq('id', id)
           .single();
-        
+
         if (error) throw error;
         setIncident(data);
       } catch (err) {
@@ -49,9 +61,9 @@ function IncidentInfo({ supabase }) {
     };
 
     fetchIncidentDetails();
-  }, [id, supabase]);
+  }, [selectedIncident, supabase]);
 
-  // 获取评论
+  // Update comments fetch to use selectedIncident.id
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -69,21 +81,19 @@ function IncidentInfo({ supabase }) {
       }
     };
 
-    if (id) {
-      fetchComments();
-    }
-  }, [id, supabase]);
+    fetchComments();
+  }, [selectedIncident, supabase]); // Remove id from dependency array since we're using selectedIncident.id
 
-  // 提交评论
+  // Update handleSubmitComment to use selectedIncident.id
   const handleSubmitComment = async () => {
-    if (!commentText.trim()) return;
+    if (!commentText.trim() || !selectedIncident?.id) return;
     
     setSubmitting(true);
     try {
       const { error } = await supabase
         .from('comments')
         .insert([{
-          submission_id: id,
+          submission_id: selectedIncident.id,  // Use selectedIncident.id instead of id
           text: commentText,
           visible: true
         }]);
@@ -94,7 +104,7 @@ function IncidentInfo({ supabase }) {
       const { data, error: fetchError } = await supabase
         .from('comments')
         .select('*')
-        .eq('submission_id', id)
+        .eq('submission_id', selectedIncident.id)  // Use selectedIncident.id instead of id
         .eq('visible', true)
         .order('created_at', { ascending: false });
       
