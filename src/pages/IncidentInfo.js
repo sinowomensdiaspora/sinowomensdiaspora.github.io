@@ -14,7 +14,10 @@ import {
   Card,
   CardContent,
   Grid,
-  CircularProgress
+  CircularProgress,
+  IconButton,
+  ThemeProvider,
+  createTheme
 } from '@mui/material';
 import { MapContainer, TileLayer, Marker, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
@@ -23,6 +26,68 @@ import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 // Remove IncidentModal import since it's not used
 import { useIncident } from '../context/IncidentContext';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import ShareIcon from '@mui/icons-material/Share';
+import ReplyIcon from '@mui/icons-material/Reply';
+
+// Create a custom theme with warmer colors
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#9c27b0', // Purple for primary actions
+    },
+    secondary: {
+      main: '#ff4081', // Pink for secondary actions
+    },
+    background: {
+      default: '#ffffff',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#333333',
+      secondary: '#666666',
+    },
+  },
+  typography: {
+    fontFamily: '"Noto Sans", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 600,
+    },
+    body1: {
+      fontSize: '1rem',
+      lineHeight: 1.6,
+    },
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: 20,
+          padding: '8px 16px',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+        },
+      },
+    },
+  },
+});
 
 function IncidentInfo({ supabase }) {
   const { id } = useParams();
@@ -32,6 +97,8 @@ function IncidentInfo({ supabase }) {
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [likedComments, setLikedComments] = useState({});
 
   // 尝试从 localStorage 获取数据
   const storedIncident = localStorage.getItem('selectedIncident');
@@ -90,13 +157,18 @@ function IncidentInfo({ supabase }) {
     
     setSubmitting(true);
     try {
+      const commentData = {
+        submission_id: selectedIncident.id,
+        text: commentText,
+        visible: true,
+        reply_to: replyingTo,
+        likes: 0,
+        avatar_emoji: getRandomEmoji()
+      };
+      
       const { error } = await supabase
         .from('comments')
-        .insert([{
-          submission_id: selectedIncident.id,  // Use selectedIncident.id instead of id
-          text: commentText,
-          visible: true
-        }]);
+        .insert([commentData]);
       
       if (error) throw error;
       
@@ -104,21 +176,46 @@ function IncidentInfo({ supabase }) {
       const { data, error: fetchError } = await supabase
         .from('comments')
         .select('*')
-        .eq('submission_id', selectedIncident.id)  // Use selectedIncident.id instead of id
+        .eq('submission_id', selectedIncident.id)
         .eq('visible', true)
         .order('created_at', { ascending: false });
       
       if (fetchError) throw fetchError;
       setComments(data || []);
       setCommentText('');
+      setReplyingTo(null);
     } catch (err) {
       console.error('提交评论失败:', err);
     } finally {
       setSubmitting(false);
     }
   };
+  
+  // Handle reply to comment
+  const handleReply = (commentId) => {
+    setReplyingTo(commentId);
+    // Focus on the comment text field
+    document.getElementById('comment-text-field').focus();
+  };
+  
+  // Handle like comment
+  const handleLikeComment = async (commentId) => {
+    // Toggle like status locally for immediate feedback
+    setLikedComments(prev => ({
+      ...prev,
+      [commentId]: !prev[commentId]
+    }));
+    
+    // In a real app, you would update the like count in the database
+    // For now, we'll just update the UI
+  };
+  
+  // Get random emoji for avatar
+  const getRandomEmoji = () => {
+    const emojis = ['🌸', '🌼', '🌺', '🌻', '🌹', '🌷', '🍀', '🌿', '🌱', '🌵', '🌴', '🌲', '🌳'];
+    return emojis[Math.floor(Math.random() * emojis.length)];
+  };
 
-  // 获取情感颜色
   const getFeelingColor = (score) => {
     if (score <= -50) return '#f44336'; // 红色
     if (score >= 50) return '#4caf50';  // 绿色
@@ -156,10 +253,22 @@ function IncidentInfo({ supabase }) {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Button component={Link} to="/" variant="outlined" sx={{ mb: 3 }}>
-        返回地图
-      </Button>
+    <ThemeProvider theme={theme}>
+      <Container maxWidth="lg" sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Button 
+          component={Link} 
+          to="/" 
+          variant="outlined" 
+          sx={{ 
+            mb: 3, 
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <span>←</span> 返回地图
+        </Button>
       
       <Grid container spacing={3}>
         {/* 左侧地图 */}
@@ -291,27 +400,66 @@ function IncidentInfo({ supabase }) {
       </Grid>
       
       {/* 评论区 */}
-      <Paper elevation={3} sx={{ mt: 4, p: 3 }}>
-        <Typography variant="h5" sx={{ mb: 3 }}>
-          关于这件事 ({comments.length})
-        </Typography>
+      <Paper elevation={3} sx={{ mt: 5, p: 0, borderRadius: '12px', boxShadow:0}}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <ChatBubbleOutlineIcon sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            一些想法 ({comments.length})
+          </Typography>
+        </Box>
         
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 4, position: 'relative', boxShadow:0 }}>
+          {replyingTo && (
+            <Box sx={{ 
+              p: 1, 
+              mb: 1, 
+              bgcolor: 'rgba(156, 39, 176, 0.1)', 
+              borderRadius: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <Typography variant="body2">回复评论</Typography>
+              <Button 
+                size="small" 
+                onClick={() => setReplyingTo(null)}
+                sx={{ minWidth: 'auto', p: '4px' }}
+              >
+                取消
+              </Button>
+            </Box>
+          )}
           <TextField
+            id="comment-text-field"
             fullWidth
             multiline
             rows={3}
-            placeholder="想法..."
+            placeholder={replyingTo ? "写下你的回复..." : "分享你的想法和感受..."}
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            sx={{ mb: 2 }}
+            sx={{ 
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '12px',
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
+              },
+            }}
           />
           <Button 
             variant="contained" 
             onClick={handleSubmitComment}
             disabled={submitting || !commentText.trim()}
+            sx={{ 
+              borderRadius: '20px',
+              px: 3,
+              py: 1,
+              fontWeight: 600,
+              boxShadow: '0 4px 8px rgba(156, 39, 176, 0.2)'
+            }}
           >
-            {submitting ? '提交中...' : '匿名发表评论'}
+            {submitting ? '提交中...' : replyingTo ? '发送回复' : '分享你的想法'}
           </Button>
         </Box>
         
@@ -319,33 +467,90 @@ function IncidentInfo({ supabase }) {
         
         {/* 评论列表 */}
         {comments.length > 0 ? (
-          comments.map((comment, index) => (
-            <Card key={index} sx={{ mb: 2 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-                  <Avatar sx={{ mr: 2, bgcolor: '#9c27b0' }}>🌼</Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="subtitle1">路人</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatDate(comment.created_at)}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, boxShadow:0 }}>
+            {comments.map((comment, index) => (
+              <Card 
+                key={index} 
+                sx={{ 
+                  mb: 0, 
+                  borderRadius: '12px',
+                  transition: 'transform 0.2s',
+                  ml: comment.reply_to ? 4 : 0,
+                }}
+                elevation={1}
+              >
+                <CardContent sx={{ p: 2}}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', boxShadow: 0 }}>
+                    <Avatar 
+                      sx={{ 
+                        mr: 2, 
+                        bgcolor: comment.reply_to ? 'hsla(19, 84.30%, 65.10%, 0.70)' : 'primary.main',
+                        width: 48,
+                        height: 48,
+                        fontSize: '1.5rem',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                      }}
+                    >
+                      {comment.avatar_emoji || '🌼'}
+                    </Avatar>
+                    <Box sx={{ flex: 1, boxShadow:0}}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, boxShadow:0}}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, boxShadow:0}}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                            路人🚶‍♀️
+                          </Typography>
+                          {comment.reply_to && (
+                            <Chip 
+                              label="回复" 
+                              size="small" 
+                              sx={{ 
+                                bgcolor: 'rgba(156, 39, 176, 0.1)', 
+                                color: 'primary.main',
+                                height: 20,
+                                fontSize: '0.7rem'
+                              }} 
+                            />
+                          )}
+                        </Box>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDate(comment.created_at)}
+                        </Typography>
+                      </Box>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          mt: 1, 
+                          mb: 2,
+                          color: 'text.primary',
+                          lineHeight: 1.6,
+                          whiteSpace: 'pre-line'
+                        }}
+                      >
+                        {comment.text}
                       </Typography>
                     </Box>
-                    <Typography variant="body1" sx={{ mt: 1 }}>
-                      {comment.text}
-                    </Typography>
                   </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
         ) : (
-          <Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-            如果你关心这件事，请在这里分享你的想法💡
-          </Typography>
+          <Box sx={{ 
+            textAlign: 'center', 
+            py: 5, 
+            px: 3, 
+            bgcolor: 'rgba(156, 39, 176, 0.05)', 
+            borderRadius: '12px',
+            border: '1px dashed rgba(156, 39, 176, 0.3)'
+          }}>
+            <Typography color="text.secondary" sx={{ mb: 2 }}>
+              如果你也有一些想法，我们需要你的声音
+            </Typography>
+          </Box>
         )}
       </Paper>
     </Container>
+    </ThemeProvider>
   );
 }
 
