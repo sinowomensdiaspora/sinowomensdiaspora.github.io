@@ -22,7 +22,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Map supabase={supabase} />} />
-            <Route path="/incident/:id" element={<IncidentInfo supabase={supabase} />} />
+            <Route path="/incident" element={<IncidentInfo supabase={supabase} />} />
             <Route path="/action" element={<Action />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/about" element={<About />} />

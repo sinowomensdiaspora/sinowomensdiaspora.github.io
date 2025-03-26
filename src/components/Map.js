@@ -339,7 +339,7 @@ function Map({ supabase }) {
                   sx={{ mt: 1 }}
                   onClick={() => {
                     setSelectedIncident(incident);
-                    window.open(`/incident/${incident.id}`, '_blank');
+                    window.open(`/incident?id=${incident.id}`, '_blank');
                   }}
                 >
                   我想了解更多
