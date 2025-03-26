@@ -90,7 +90,11 @@ const theme = createTheme({
 });
 
 function IncidentInfo({ supabase }) {
-  const { id } = useParams();
+  // Use URLSearchParams to get id from query parameter instead of useParams
+  const { search } = window.location;
+  const queryParams = new URLSearchParams(search);
+  const id = queryParams.get('id');
+  
   const { selectedIncident, setSelectedIncident } = useIncident();
   const [incident, setIncident] = useState(null);
   const [comments, setComments] = useState([]);
@@ -111,11 +115,16 @@ function IncidentInfo({ supabase }) {
   }
   useEffect(() => {
     const fetchIncidentDetails = async () => {
+      if (!id && !selectedIncident?.id) {
+        setLoading(false);
+        return;
+      }
+      
       try {
         const { data, error } = await supabase
           .from('submissions')
           .select('*')
-          .eq('id', id)
+          .eq('id', id || selectedIncident?.id)
           .single();
 
         if (error) throw error;
@@ -130,14 +139,16 @@ function IncidentInfo({ supabase }) {
     fetchIncidentDetails();
   }, [selectedIncident, supabase]);
 
-  // Update comments fetch to use selectedIncident.id
+  // Update comments fetch to use id from query parameter or selectedIncident.id
   useEffect(() => {
     const fetchComments = async () => {
+      if (!id && !selectedIncident?.id) return;
+      
       try {
         const { data, error } = await supabase
           .from('comments')
           .select('*')
-          .eq('submission_id', id)
+          .eq('submission_id', id || selectedIncident?.id)
           .eq('visible', true)
           .order('created_at', { ascending: false });
         
@@ -149,16 +160,17 @@ function IncidentInfo({ supabase }) {
     };
 
     fetchComments();
-  }, [selectedIncident, supabase]); // Remove id from dependency array since we're using selectedIncident.id
+  }, [id, selectedIncident, supabase]); // Add id to dependency array
 
-  // Update handleSubmitComment to use selectedIncident.id
+  // Update handleSubmitComment to use id from query parameter or selectedIncident.id
   const handleSubmitComment = async () => {
-    if (!commentText.trim() || !selectedIncident?.id) return;
+    const submissionId = id || selectedIncident?.id;
+    if (!commentText.trim() || !submissionId) return;
     
     setSubmitting(true);
     try {
       const commentData = {
-        submission_id: selectedIncident.id,
+        submission_id: submissionId,
         text: commentText,
         visible: true,
         reply_to: replyingTo,
@@ -176,7 +188,7 @@ function IncidentInfo({ supabase }) {
       const { data, error: fetchError } = await supabase
         .from('comments')
         .select('*')
-        .eq('submission_id', selectedIncident.id)
+        .eq('submission_id', submissionId)
         .eq('visible', true)
         .order('created_at', { ascending: false });
       

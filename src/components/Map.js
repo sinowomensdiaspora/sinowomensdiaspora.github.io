@@ -340,8 +340,7 @@ function Map({ supabase }) {
                   onClick={() => {
                     localStorage.setItem('selectedIncident', JSON.stringify(incident));
                     setSelectedIncident(incident);
-                    // Open with the exact URL to avoid path issues
-                    window.open(`${process.env.PUBLIC_URL}/incident`, '_blank');
+                    window.open(`#/incident?id=${incident.id}`, '_blank');
                   }}
                 >
                   我想了解更多
