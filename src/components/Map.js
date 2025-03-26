@@ -179,8 +179,7 @@ function Map({ supabase }) {
       const { error: submitError } = await supabase
         .from('submissions')
         .insert([{
-          ...newIncident,
-          created_at: new Date().toISOString()
+          ...newIncident
         }]);
       
       if (submitError) throw submitError;
@@ -586,7 +585,7 @@ function Map({ supabase }) {
           )}
 
           <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-            <Button variant="contained" onClick={handleSubmit}>Submit</Button>
+            <Button variant="contained" onClick={handleSubmit}>提交</Button>
             <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
           </Box>
         </Box>
