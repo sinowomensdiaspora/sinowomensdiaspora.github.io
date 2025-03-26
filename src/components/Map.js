@@ -9,7 +9,9 @@ import {
   InputLabel, 
   Box, 
   Alert,
-  Snackbar 
+  Snackbar,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import L from 'leaflet';
 import styled from 'styled-components';
@@ -80,6 +82,8 @@ function Map({ supabase }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [newIncident, setNewIncident] = useState({
     here_happened: '',
@@ -131,8 +135,6 @@ function Map({ supabase }) {
   // 修改获取附近故事的函数，使用地理位置查询
   const fetchNearbyStories = async (lat, lng) => {
     try {
-      // 这里可以使用地理位置查询，如果 Supabase 支持的话
-      // 简化版本：获取最近创建的3条记录
       const { data, error } = await supabase
         .from('submissions')
         .select('*')
@@ -266,7 +268,12 @@ function Map({ supabase }) {
         variant={isAddingMode ? "outlined" : "contained"}
         onClick={() => setIsAddingMode(!isAddingMode)}
         $isAddingMode={isAddingMode}
-        style={{ position: 'absolute', left: '20px', top: '20px', zIndex: 1000 }}
+        style={{ 
+          position: 'absolute', 
+          left: '20px', 
+          top: '20px', 
+          zIndex: 1000 
+        }}
       >
         {isAddingMode ? 'Drop your pin' : 'Submit'}
       </StyledSubmitButton>
@@ -353,21 +360,23 @@ function Map({ supabase }) {
       {showForm && (
         <Box
           sx={{
-            position: 'absolute',
-            top: 60,
-            left: 10,
+            position: isMobile ? 'relative' : 'absolute',
+            top: isMobile ? 'auto' : 60,
+            left: isMobile ? 'auto' : 10,
             zIndex: 1000,
             backgroundColor: 'white',
             padding: 2,
             borderRadius: 1,
-            width: '400px'
+            width: isMobile ? '100%' : '400px',
+            mt: isMobile ? 2 : 0,
+            boxShadow: 3
           }}
         >
           <Button 
             variant="contained" 
             color="info"
-            halfWidth
-            sx={{ mb: 2 }}
+            // Remove the invalid halfWidth prop
+            sx={{ mb: 2, width: isMobile ? '100%' : 'auto' }} // Use sx to control width instead
             onClick={() => {
               if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(

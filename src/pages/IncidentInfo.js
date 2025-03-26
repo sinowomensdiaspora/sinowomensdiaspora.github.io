@@ -172,11 +172,9 @@ function IncidentInfo({ supabase }) {
       const commentData = {
         submission_id: submissionId,
         text: commentText,
-        visible: true,
-        reply_to: replyingTo,
-        likes: 0,
-        avatar_emoji: getRandomEmoji()
+        visible: true
       };
+      console.log(commentData);
       
       const { error } = await supabase
         .from('comments')
