@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import Action from './pages/Action';
 import Resources from './components/Resources';
@@ -18,7 +18,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 function App() {
   return (
     <IncidentProvider>
-      <Router basename={process.env.PUBLIC_URL}>
+      <Router>
         <Layout>
           <Routes>
             <Route path="/" element={<Map supabase={supabase} />} />
