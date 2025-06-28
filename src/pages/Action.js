@@ -1,11 +1,17 @@
 import React from 'react';
+import { Container, Typography, Box } from '@mui/material';
 
 function Action() {
   return (
-    <div>
-      <h1>Action</h1>
-      {/* 待实现 */}
-    </div>
+    <Container maxWidth="md" sx={{ padding:20, textAlign: 'center' }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        努力实现中 orzz
+      </Typography>
+      <Typography variant="body1">
+        This page is under construction.
+        It really is.
+      </Typography>
+    </Container>
   );
 }
 

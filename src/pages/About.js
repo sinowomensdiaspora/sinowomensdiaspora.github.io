@@ -1,9 +1,19 @@
 import React from 'react';
+import { Container, Typography, Box, Button } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 function About() {
   return (
-    <div>
-      <h1>关于我们 ：）</h1>
+    <Container maxWidth="md" sx={{ py: 15, fontFamily:'Hei' }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        关于我们 ：）
+      </Typography>
+      <Box sx={{ my: 4, display: 'flex', justifyContent: 'center' }}>
+        <Button component={Link} to="/oneofus" variant="contained" color="error">
+         缓慢建站中🫧 如果你也在乎，请加入我们 🪢
+        </Button>
+      </Box>
+      
       <p>
       作为华裔离散女性，我们的声音往往被忽视，我们的经验被简化或误解。我们被视为“安静的”移民、“顺从的”女性、“外来的”个体，而非真正的社会成员。
       但在这里，我们不仅记录，也彼此支持。在面对孤立、困境和系统性压迫的同时，我们共同寻找属于我们的安全感、归属感和新的可能性。
@@ -29,7 +39,7 @@ function About() {
       行为艺术的可能性 🎭—— 用身体介入城市空间，打破日常中的隐形压迫，以艺术作为反抗的语言。
       </li>
       </ul>
-    </div>
+    </Container>
   );
 }
 

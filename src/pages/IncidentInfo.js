@@ -264,7 +264,7 @@ function IncidentInfo({ supabase }) {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="lg" sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Container maxWidth="lg" sx={{ py: 4, bgcolor: 'background.default', minHeight: 'calc(100vh - 80px)' }}>
         <Button 
           component={Link} 
           to="/" 
@@ -292,17 +292,13 @@ function IncidentInfo({ supabase }) {
                 zoomControl={false}
               >
                 <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
                 />
                 <ZoomControl position="topright" />
                 <Marker
                   position={[incident.lat, incident.lng]}
                   icon={new L.Icon({
-                    iconUrl: incident.feeling_score <= -50 
-                      ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png'
-                      : incident.feeling_score >= 50
-                        ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png'
-                        : 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
+                    iconUrl: require('../assets/map_marker/regular-marker.png'),
                     iconSize: [25, 41],
                     iconAnchor: [12, 41]
                   })}

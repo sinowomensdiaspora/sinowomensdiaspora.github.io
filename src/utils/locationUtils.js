@@ -29,3 +29,40 @@ export const getRegionFromCoordinates = (lat, lng) => {
   
   return region;
 };
+
+/**
+ * Get address from latitude and longitude using OpenStreetMap Nominatim API
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ * @returns {Promise<string>} - Promise that resolves to address string
+ */
+export const getAddressFromCoordinates = async (lat, lng) => {
+  try {
+    // Using OpenStreetMap Nominatim API for reverse geocoding
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+      {
+        headers: {
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8', // Prefer Chinese results
+          'User-Agent': 'ChineseWomenDiaspora/1.0' // Required by Nominatim usage policy
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch address');
+    }
+    
+    const data = await response.json();
+    
+    // Format the address based on available data
+    if (data && data.display_name) {
+      return data.display_name;
+    } else {
+      return '未知地址'; // Unknown address
+    }
+  } catch (error) {
+    console.error('Error getting address:', error);
+    return '未知地址'; // Unknown address
+  }
+};

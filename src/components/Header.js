@@ -16,45 +16,25 @@ import { Link } from 'react-router-dom';
 import { Button } from '@mui/material';
 import styled from 'styled-components';
 
-function Header() {
+function Header({ isOverMap }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const RainbowButton = styled(Button)({
-    background: 'linear-gradient(45deg, #FF0018, #FFA52C, #FFFF41, #008018, #0000F9, #86007D)',
-    backgroundSize: '300% 300%',
-    animation: 'gradient 20s ease infinite',
-    color: 'white',
-    '@keyframes gradient': {
-      '0%': {
-        backgroundPosition: '0% 50%'
-      },
-      '50%': {
-        backgroundPosition: '100% 50%'
-      },
-      '100%': {
-        backgroundPosition: '0% 50%'
-      }
-    },
-    '&:hover': {
-      background: 'linear-gradient(45deg, #86007D, #0000F9, #008018, #FFFF41, #FFA52C, #FF0018)',
-    }
-  });
-
   const menuItems = [
-    { text: 'Map', link: '/' },
-    { text: 'Action', link: '/action' },
-    { text: 'Resources', link: '/resources' },
-    { text: 'About', link: '/about'}
+    { text: 'stories', link: '/' },
+    { text: 'action', link: '/action' },
+    { text: 'resources', link: '/resources' },
+    { text: 'contact us', link: '/about'}
   ];
 
   return (
     <AppBar 
-      position="static" 
+      position={isOverMap ? "static" : "fixed"} 
       sx={{ 
-        backgroundColor: 'white',
-        color: 'black',
+        backgroundColor: 'transparent',
+        backdropFilter: 'none',
+        color: 'red',
         boxShadow: 'none',
-        borderBottom: '1px solid #eaeaea'
+        zIndex: isOverMap ? 1000 : 1100
       }}
     >
       <Container maxWidth={false}>
@@ -64,25 +44,32 @@ function Header() {
             onClick={() => setDrawerOpen(true)}
             sx={{ 
               mr: 2,
-              display: { sm: 'none' }
+              display: { sm: 'none' },
+              color: 'red'
             }}
           >
             <MenuIcon />
           </IconButton>
           
-          <Typography 
-            variant="h6" 
-            component={Link} 
-            to="/"
-            sx={{ 
-              flexGrow: 1,
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 600
-            }}
-          >
-            Chinese Women Diaspora
-          </Typography>
+          {!isOverMap && (
+            <Typography 
+              variant="h4" 
+              component={Link} 
+              to="/"
+              sx={{ 
+                flexGrow: 1,
+                textDecoration: 'none',
+                color: 'red',
+                fontFamily: 'balloon',
+                fontSize: '2rem'
+              }}
+            >
+              Archive of the Chinese Women's Diaspora
+            </Typography>
+          )}
+          {isOverMap && (
+            <Box sx={{ flexGrow: 1 }}></Box>
+          )}
 
           <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 3, alignItems: 'center' }}>
             {menuItems.map((item) => (
@@ -92,23 +79,17 @@ function Header() {
                 to={item.link}
                 sx={{
                   textDecoration: 'none',
-                  color: 'inherit',
+                  color: 'red',
+                  fontFamily: 'balloon',
+                  fontSize: '1.5rem',
                   '&:hover': {
-                    color: 'primary.main'
+                    textDecoration: 'underline'
                   }
                 }}
               >
                 {item.text}
               </Typography>
             ))}
-            <RainbowButton
-              component={Link}
-              to="/oneofus"
-              variant="contained"
-              size="small"
-            >
-              One of Us
-            </RainbowButton>
           </Box>
         </Toolbar>
       </Container>
@@ -117,6 +98,12 @@ function Header() {
         anchor="left"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: 'white',
+            color: 'red'
+          }
+        }}
       >
         <List sx={{ width: 250 }}>
           {menuItems.map((item) => (
@@ -126,8 +113,23 @@ function Header() {
               component={Link} 
               to={item.link}
               onClick={() => setDrawerOpen(false)}
+              sx={{
+                color: 'red',
+                fontFamily: 'balloon',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 0, 0, 0.1)'
+                }
+              }}
             >
-              <ListItemText primary={item.text} />
+              <ListItemText 
+                primary={item.text} 
+                primaryTypographyProps={{
+                  sx: {
+                    fontFamily: 'balloon',
+                    color: 'red'
+                  }
+                }}
+              />
             </ListItem>
           ))}
         </List>

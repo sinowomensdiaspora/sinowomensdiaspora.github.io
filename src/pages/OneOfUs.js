@@ -31,11 +31,11 @@ function OneOfUs() {
   ];
 
   return (
-    <Container className="py-5">
+    <Container className="py-5" style={{ fontFamily: "''balloon'','Hei', 'sans-serif'" }}>
       <Row className="text-center mb-5">
         <Col>
           <h1 className="display-4 mb-3">
-            If you are <span className="text-warning fw-bold">One of Us</span>
+            If you are <span className="text-danger fw-bold">One of Us</span>
           </h1>
           <h2 className="h3 mb-4">We need you!</h2>
           <p className="lead mb-4">
@@ -71,7 +71,7 @@ function OneOfUs() {
         <Col>
           <Button 
             href="https://forms.gle/MJiKMADnA9RaVqKK9"
-            variant="outline-warning"
+            variant="outline-danger"
             target="_blank"
             size="lg"
             className="px-5 py-3 shadow"

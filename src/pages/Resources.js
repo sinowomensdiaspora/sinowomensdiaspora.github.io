@@ -21,7 +21,7 @@ function Resources() {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
+    <Container maxWidth="lg" sx={{ py: 8}}>
       {/* Main Article */}
       <Box sx={{ mb: 8 }}>
         <Typography variant="h3" component="h1" gutterBottom>

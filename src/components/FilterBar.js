@@ -1,43 +1,115 @@
 import React from 'react';
-import { Paper, TextField, Select, MenuItem, Box } from '@mui/material';
+import { Select, MenuItem, Box, Typography } from '@mui/material';
 
-function FilterBar({ onFilter }) {
+function FilterBar({ onRegionChange, onMoodChange }) {
   return (
-    <Paper sx={{ p: 2, my: 2 }}>
-      <Box sx={{ display: 'flex', gap: 2 }}>
-        <TextField
-          label="关键词搜索"
-          size="small"
-          sx={{ flex: 1 }}
-        />
-        <Select
-          size="small"
-          label="感受程度"
-          sx={{ width: 150 }}
-        >
-          <MenuItem value="">全部</MenuItem>
-          <MenuItem value={1}>Good</MenuItem>
-          <MenuItem value={2}>Medium</MenuItem>
-          <MenuItem value={3}>Bad</MenuItem>
-        </Select>
-        <Select
-          size="small"
-          label="伤害类型"
-          sx={{ width: 150 }}
-        >
-          <MenuItem value="">全部</MenuItem>
-          <MenuItem value={1}>肢体暴力</MenuItem>
-          <MenuItem value={2}>语言暴力</MenuItem>
-          <MenuItem value={3}>冷暴力</MenuItem>
-          <MenuItem value={4}>其他</MenuItem>
-        </Select>
-        <TextField
-          label="地区"
-          size="small"
-          sx={{ width: 150 }}
-        />
-      </Box>
-    </Paper>
+    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', p: 2, backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(5px)', borderRadius: '8px' }}>
+      <Typography 
+        sx={{ 
+          fontFamily: 'balloon', 
+          color: 'red',
+          marginRight: '10px',
+          fontSize: '1.5rem'
+        }}
+      >
+        filter by... region
+      </Typography>
+      <Select
+        size="small"
+        displayEmpty
+        defaultValue=""
+        onChange={onRegionChange}
+        sx={{ 
+          width: '120px', 
+          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+          fontFamily: 'balloon',
+          color: 'red',
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'transparent',
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'red',
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'red',
+          },
+          '& .MuiSelect-icon': {
+            color: 'red'
+          }
+        }}
+        MenuProps={{
+          PaperProps: {
+            sx: {
+              '& .MuiMenuItem-root': {
+                fontFamily: 'balloon',
+                color: 'red'
+              }
+            }
+          }
+        }}
+      >
+        <MenuItem value=""><em>None</em></MenuItem>
+        <MenuItem value="china">中国</MenuItem>
+        <MenuItem value="usa">美国</MenuItem>
+        <MenuItem value="france">法国</MenuItem>
+        <MenuItem value="uk">英国</MenuItem>
+        <MenuItem value="japan">日本</MenuItem>
+      </Select>
+      
+      <Typography 
+        sx={{ 
+          fontFamily: 'balloon', 
+          color: 'red',
+          marginLeft: '20px',
+          marginRight: '10px',
+          fontSize: '1.5rem'
+        }}
+      >
+        mood
+      </Typography>
+      
+      <Select
+        size="small"
+        displayEmpty
+        defaultValue=""
+        onChange={onMoodChange}
+        sx={{ 
+          width: '150px', 
+          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+          fontFamily: 'balloon',
+          color: 'red',
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'transparent',
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'red',
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'red',
+          },
+          '& .MuiSelect-icon': {
+            color: 'red'
+          }
+        }}
+        MenuProps={{
+          PaperProps: {
+            sx: {
+              '& .MuiMenuItem-root': {
+                fontFamily: 'balloon',
+                color: 'red'
+              }
+            }
+          }
+        }}
+      >
+        <MenuItem value=""><em>None</em></MenuItem>
+        <MenuItem value="physical">身体暴力</MenuItem>
+        <MenuItem value="mental">精神暴力</MenuItem>
+        <MenuItem value="sexual">性暴力</MenuItem>
+        <MenuItem value="third_party">借助第三方的暴力</MenuItem>
+        <MenuItem value="cyber">网络暴力</MenuItem>
+      </Select>
+    </Box>
   );
 }
 
