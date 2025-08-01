@@ -12,129 +12,109 @@ import {
   Container
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@mui/material';
 import styled from 'styled-components';
 
 function Header({ isOverMap }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const requiresTransparent = location.pathname === '/action' || location.pathname.startsWith('/action/') || location.pathname.startsWith('/about');
 
   const menuItems = [
-    { text: 'stories', link: '/' },
-    { text: 'action', link: '/action' },
-    { text: 'resources', link: '/resources' },
-    { text: 'contact us', link: '/about'}
+    { text: '写故事', link: '/map' },
+    { text: '故事档案', link: '/archive' },
+    { text: '行动', link: '/action' },
+    { text: '工具箱', link: '/resources' },
+    { text: '关于我们', link: '/about'}
   ];
 
   return (
-    <AppBar 
-      position={isOverMap ? "static" : "fixed"} 
-      sx={{ 
-        backgroundColor: 'transparent',
-        backdropFilter: 'none',
-        color: 'red',
-        boxShadow: 'none',
-        zIndex: isOverMap ? 1000 : 1100
-      }}
-    >
-      <Container maxWidth={false}>
-        <Toolbar sx={{ padding: { xs: '0 16px', md: '0 24px' } }}>
-          <IconButton
-            edge="start"
-            onClick={() => setDrawerOpen(true)}
-            sx={{ 
-              mr: 2,
-              display: { sm: 'none' },
-              color: 'red'
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-          
-          {!isOverMap && (
+    <>
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '20vh',
+          background: 'linear-gradient(to bottom, rgba(255, 107, 157, 0.5) 0%, transparent 100%)',
+          zIndex: 1,
+          pointerEvents: 'none'
+        }}
+      />
+      
+      <AppBar
+        position="fixed"
+        sx={{
+          background: 'linear-gradient(to bottom,rgba(255, 0, 93, 0.80),rgba(253, 68, 77, 0.49), transparent)',
+          backdropFilter: 'blur(10px)',
+          color: 'red',
+          boxShadow: 'none',
+          zIndex: 1100,
+          height: '10vh'
+        }}
+      >
+        <Container maxWidth={false}>
+          <Toolbar sx={{ padding: { xs: '0 16px', md: '0 24px' }, justifyContent: 'center' }}>
             <Typography 
-              variant="h4" 
+              variant="h2" 
               component={Link} 
               to="/"
               sx={{ 
-                flexGrow: 1,
                 textDecoration: 'none',
-                color: 'red',
+                color: '#000',
                 fontFamily: 'balloon',
-                fontSize: '2rem'
+                fontSize: { xs: '1.5rem', md: '3rem' },
+                textTransform: 'uppercase',
+                textAlign: 'center'
               }}
             >
-              Archive of the Chinese Women's Diaspora
+              Archive of the Sino<br />
+              Women's Diaspora
             </Typography>
-          )}
-          {isOverMap && (
-            <Box sx={{ flexGrow: 1 }}></Box>
-          )}
+          </Toolbar>
+        </Container>
+      </AppBar>
 
-          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 3, alignItems: 'center' }}>
-            {menuItems.map((item) => (
-              <Typography
-                key={item.text}
-                component={Link}
-                to={item.link}
-                sx={{
-                  textDecoration: 'none',
-                  color: 'red',
-                  fontFamily: 'balloon',
-                  fontSize: '1.5rem',
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
-              >
-                {item.text}
-              </Typography>
-            ))}
-          </Box>
-        </Toolbar>
-      </Container>
-
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            backgroundColor: 'white',
-            color: 'red'
-          }
+      {/* footer */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+          width: '100%',
+          padding: 3,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: { xs: 3, md: 6 },
+          backdropFilter: requiresTransparent ? 'none' : 'blur(30px)'
         }}
       >
-        <List sx={{ width: 250 }}>
-          {menuItems.map((item) => (
-            <ListItem 
-              button 
-              key={item.text} 
-              component={Link} 
-              to={item.link}
-              onClick={() => setDrawerOpen(false)}
-              sx={{
-                color: 'red',
-                fontFamily: 'balloon',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 0, 0, 0.1)'
-                }
-              }}
-            >
-              <ListItemText 
-                primary={item.text} 
-                primaryTypographyProps={{
-                  sx: {
-                    fontFamily: 'balloon',
-                    color: 'red'
-                  }
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-    </AppBar>
+        {menuItems.map((item, index) => (
+          <Typography
+            key={index}
+            onClick={() => navigate(item.link)}
+            sx={{
+              fontSize: { xs: '1rem', md: '1.2rem' },
+              color: '#000',
+              cursor: 'pointer',
+              fontFamily: 'SimHei, sans-serif',
+              fontWeight: location.pathname === item.link ? 'bold' : 'normal',
+              transition: 'font-weight 0.2s ease',
+              '&:hover': {
+                fontWeight: 'bold'
+              }
+            }}
+          >
+            {item.text}
+          </Typography>
+        ))}
+      </Box>
+    </>
   );
 }
 

@@ -16,13 +16,16 @@
     "date-fns": "^4.1.0",
     "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
+    "p5": "^2.0.3",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
     "react-leaflet": "^5.0.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.3.0",
     "react-scripts": "5.0.1",
     "react-type-animation": "^3.2.0",
+    "remark-gfm": "^4.0.1",
     "styled-components": "^6.1.15",
     "web-vitals": "^2.1.4"
   },
@@ -32,7 +35,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "generate-manifest": "node scripts/generate-manifest.js"
   },
   "homepage": "https://chinesewomendiaspora.github.io/",
   "eslintConfig": {

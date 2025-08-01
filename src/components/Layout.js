@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, Grid, IconButton } from '@mui/material';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
@@ -11,17 +11,66 @@ import footerPixels from '../assets/images/footer_pixels.png';
 function Layout({ children }) {
   const location = useLocation();
   const [showHeader, setShowHeader] = useState(false);
-  const [isOverMap, setIsOverMap] = useState(true); // 默认认为Header在地图上方
-  const footerLinks = {
-    'Map': ['Page', 'Page', 'Page'],
-    'Resources': ['Page', 'Page', 'Page'],
-    'About': ['Page', 'Page', 'Page']
-  };
+  const [isOverMap, setIsOverMap] = useState(true);
+  const isStartupPage = location.pathname === '/';
+  const isArchivePage = location.pathname === '/archive';
+  const isActionPage = location.pathname === '/action' || location.pathname.startsWith('/action/');
 
   useEffect(() => {
-    setShowHeader(true);
-    setIsOverMap(location.pathname === '/');
-  }, [location]);
+    setShowHeader(!isStartupPage && !isArchivePage);
+    setIsOverMap(location.pathname === '/map' || location.pathname === '/archive' || isActionPage);
+  }, [location, isStartupPage, isArchivePage, isActionPage]);
+
+  // Footer component
+  const Footer = () => {
+    const navigate = useNavigate();
+
+    const menuItems = [
+      { text: '写故事', link: '/map' },
+      { text: '故事档案', link: '/archive' },
+      { text: '行动', link: '/action' },
+      { text: '工具箱', link: '/resources' },
+      { text: '关于我们', link: '/about'}
+    ];
+
+    return (
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+          width: '100%',
+          padding: 3,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: { xs: 3, md: 6 },
+          backdropFilter: isArchivePage ? 'none' : 'blur(30px)'
+        }}
+      >
+        {menuItems.map((item, index) => (
+          <Typography
+            key={index}
+            onClick={() => navigate(item.link)}
+            sx={{
+              fontSize: { xs: '1rem', md: '1.2rem' },
+              color: '#000',
+              cursor: 'pointer',
+              fontFamily: 'SimHei, sans-serif',
+              fontWeight: location.pathname === item.link ? 'bold' : 'normal',
+              transition: 'font-weight 0.2s ease',
+              '&:hover': {
+                fontWeight: 'bold'
+              }
+            }}
+          >
+            {item.text}
+          </Typography>
+        ))}
+      </Box>
+    );
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100vw', overflow: 'hidden', position: 'relative' }}>
@@ -37,42 +86,16 @@ function Layout({ children }) {
           maxWidth: '100%',
           margin: 0,
           width: '100vw',
-          paddingTop: isOverMap ? '0' : '80px',
+          paddingTop: isStartupPage ? '0' : (isOverMap ? '0' : '10vh'),
+          paddingBottom: isStartupPage ? '0' : (isOverMap ? '0' : '80px'),
           backgroundColor: 'transparent'
         }}
       >
         {children}
       </Container>
-      <Box 
-        component="footer" 
-      >
-       <Box sx={{ marginTop: '80px', marginBottom: '40px' }}>
-          <Typography 
-            variant="h2" 
-            sx={{ 
-              fontFamily: 'balloon', 
-              color: 'red', 
-              textAlign: 'center',
-              marginBottom: '40px',
-              fontSize: '3rem'
-            }}
-          >
-            Archive of the Sino Women's Diaspora
-          </Typography>
-          
-          <Typography 
-            sx={{ 
-              color: 'red', 
-              textAlign: 'justify',
-              lineHeight: 1.6,
-              maxWidth: '800px',
-              margin: '0 auto'
-            }}
-          >
-            In the public space, we are targets of harassment; in the healthcare system, our needs are ignored; and in social interactions, we are marginalised or alienated as part of a stereotype. We refuse to be silent because speaking out about our experiences is a form of resistance. When discrimination and oppression go unspoken, they are hidden, rationalised and become part of the daily grind. And when we naming it, we break the silence and not only make our own experiences visible, but fight for space for the wider community.Therefore, we created this platform to anonymously collect and share the real experiences of Chinese diaspora women in their new environment.We believe that the accumulation of personal experiences translates into possibilities for more powerful social action, such as Annual Anti-Discrimination Day, connecting with local anti-discrimination organisations to prompt policy improvements.Street actions and marches - Speak out in public spaces to challenge stereotypes and resist racialised gender violence.Possibilities of Performance Art - Intervening in urban spaces with the body, breaking down the invisible oppression of the everyday, using art as a form of resistance
-          </Typography>
-        </Box>
-      </Box>
+
+      {/* Show footer for archive page */}
+      {isArchivePage && <Footer />}
     </Box>
   );
 }

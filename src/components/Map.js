@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Stack from '@mui/material/Stack';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, ZoomControl, useMap } from 'react-leaflet';
 import {
   Button,
@@ -20,8 +21,14 @@ import {
 import './Map.css';
 import L from 'leaflet';
 import styled from 'styled-components';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { getRegionFromCoordinates, getAddressFromCoordinates } from '../utils/locationUtils';
 import FilterBar from './FilterBar';
+import CustomButton from './CustomButton';
 import RecentHarms from './RecentHarms';
 import Contributors from './Contributors';
 import { Slider, Chip, Typography, CircularProgress } from '@mui/material';
@@ -29,6 +36,7 @@ import { TypeAnimation } from 'react-type-animation';
 import { useIncident } from '../context/IncidentContext';
 import html2canvas from 'html2canvas';
 import { Container } from 'react-bootstrap';
+import zIndex from '@mui/material/styles/zIndex';
 
 
 // 地图事件组件
@@ -107,7 +115,9 @@ function Map({ supabase }) {
   // 添加地图区域状态
   const [mapRegionToFocus, setMapRegionToFocus] = useState(null);
   const [incidents, setIncidents] = useState([]);
+  const [spaces, setSpaces] = useState([]);
   const [selectedIncidentId, setSelectedIncidentId] = useState(null);
+  const [selectedSpace, setSelectedSpace] = useState(null);
   const { setSelectedIncident } = useIncident();
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [tempMarker, setTempMarker] = useState(null);
@@ -117,7 +127,6 @@ function Map({ supabase }) {
   const [error, setError] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const mapHeight = isMobile && showForm ? '60vh' : '70vh';
 
   // 添加回执弹窗状态
   const [openReceiptDialog, setOpenReceiptDialog] = useState(false);
@@ -178,9 +187,9 @@ function Map({ supabase }) {
   const [isLoading, setIsLoading] = useState(false);
   const [showNearbyStories, setShowNearbyStories] = useState(false);
 
-  // Load incidents when component mounts
   useEffect(() => {
     refreshIncidents();
+    refreshSpaces();
   }, []);
 
   const fetchNearbyStories = async (lat, lng) => {
@@ -236,6 +245,28 @@ function Map({ supabase }) {
     }
   };
 
+  // 添加刷新援助空间数据的函数
+  const refreshSpaces = async () => {
+    try {
+      console.log('Refreshing all spaces');
+      const { data, error } = await supabase
+        .from('spaces')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching spaces:', error);
+        return;
+      }
+
+      console.log('Fetched spaces:', data?.length || 0);
+      setSpaces(data || []);
+    } catch (err) {
+      console.error('Failed to fetch spaces:', err);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!newIncident.lat || !newIncident.lng) {
       setError('请在地图上选择一个位置');
@@ -253,14 +284,12 @@ function Map({ supabase }) {
 
       setSuccessMessage('🕊️ 谢谢你的分享，它将推动改变发生。');
       setShowSuccess(true);
-      // 确保tempMarker已设置，这样回执中可以显示地图
       if (!tempMarker && newIncident.lat && newIncident.lng) {
         setTempMarker({
           latitude: newIncident.lat,
           longitude: newIncident.lng
         });
       }
-      // 获取地址信息
       setLocationAddress('获取地址中...'); // 重置地址状态
       try {
         const address = await getAddressFromCoordinates(newIncident.lat, newIncident.lng);
@@ -287,7 +316,6 @@ function Map({ supabase }) {
         });
       }, 1000);
 
-      // 提交后刷新地图数据
       await refreshIncidents();
 
       // 不要在这里调用handleCancel，因为它会重置newIncident
@@ -309,7 +337,7 @@ function Map({ supabase }) {
           useCORS: true,
           backgroundColor: '#ff0000',
           width: receiptRef.current.offsetWidth,
-          height: receiptRef.current.offsetWidth
+          height: receiptRef.current.offsetHeight
         });
         receiptRef.current.style.transform = originalTransform;
 
@@ -328,7 +356,7 @@ function Map({ supabase }) {
   };
 
   return (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <Dialog
         open={openReceiptDialog}
         onClose={handleCloseReceiptDialog}
@@ -343,11 +371,11 @@ function Map({ supabase }) {
       >
         <DialogContent style={{ padding: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8b7c9' }}>
           <div style={{ padding: '10px', backgroundColor: '#f8b7c9' }}>
-            <h1 style={{ margin: '0', fontSize: '22px', fontFamily: '"Hei"', color: 'black' }}> 我们收到啦！等待后台审核上线！</h1>
+            <h1 style={{ margin: '0', fontSize: '22px', fontFamily: '"Avenir"', color: 'black' }}> 🕊️ 谢谢你分享，它将推动改变发生。</h1>
           </div>
-          <div style={{ width: '100%', maxWidth: '500px', overflow: 'hidden', padding: '8px' }}>
-            <div ref={receiptRef} style={{ backgroundColor: '#ff0000', color: 'black', textAlign: 'center', width: '100%', aspectRatio: '1/1', display: 'flex', flexDirection: 'column', transform: 'scale(1)', transformOrigin: 'top left', overflow: 'hidden' }}>
-              <div style={{ height: '80%', position: 'relative', overflow: 'hidden', padding: 0 }}>
+          <div style={{ width: '100%', maxWidth: '500px', maxHeight: '70vh', overflow: 'auto', padding: '8px' }}>
+            <div ref={receiptRef} style={{ backgroundColor: '#ff0000', color: 'black', textAlign: 'center', width: '100%', minHeight: '500px', display: 'flex', flexDirection: 'column', transform: 'scale(1)', transformOrigin: 'top left', overflow: 'hidden' }}>
+              <div style={{ height: '300px', position: 'relative', overflow: 'hidden', padding: 0 }}>
                 <div style={{ position: 'relative', height: '100%', width: '100%' }}>
                   {newIncident.lat && newIncident.lng && (
                     <MapContainer
@@ -377,10 +405,10 @@ function Map({ supabase }) {
                   {locationAddress}
                 </p>
               </div>
-              <div style={{ height: '45%', backgroundColor: '#ff0000', color: 'black', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <h2 style={{ margin: '0', fontSize: '20px', fontFamily: '"Hei"', textAlign: 'center' }}>这里发生了：</h2>
-                <h3 style={{ margin: '10px 0', fontSize: '28px', fontFamily: '"Hei"', fontWeight: 'bold', textAlign: 'center', color: 'black' }}>{newIncident.here_happened}</h3>
-                <p style={{ margin: '0 10px', fontSize: '16px', lineHeight: '1.3', fontFamily: '"Hei"', color: 'black' }}>
+              <div style={{ flex: '1', backgroundColor: '#ff0000', color: 'black', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px 10px', minHeight: '200px' }}>
+                <h2 style={{ margin: '0 0 10px 0', fontSize: '20px', fontFamily: '"Hei"', textAlign: 'center' }}>这里发生了：</h2>
+                <h3 style={{ margin: '10px 0', fontSize: '28px', fontFamily: '"Hei"', fontWeight: 'bold', textAlign: 'center', color: 'black', wordWrap: 'break-word' }}>{newIncident.here_happened}</h3>
+                <p style={{ margin: '10px 0 0 0', fontSize: '16px', lineHeight: '1.4', fontFamily: '"Hei"', color: 'black', wordWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
                   {newIncident.description}
                 </p>
               </div>
@@ -390,7 +418,7 @@ function Map({ supabase }) {
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', width: '80%', maxWidth: '400px', marginTop: '20px', marginBottom: '20px' }}>
-            <Button
+            <CustomButton
               variant="outlined"
               style={{
                 borderRadius: '20px',
@@ -404,9 +432,9 @@ function Map({ supabase }) {
               onClick={handleCloseReceiptDialog}
             >
               浏览更多
-            </Button>
+            </CustomButton>
 
-            <Button
+            <CustomButton
               variant="contained"
               style={{
                 borderRadius: '20px',
@@ -420,131 +448,51 @@ function Map({ supabase }) {
               onClick={downloadReceipt}
             >
               保存
-            </Button>
+            </CustomButton>
           </div>
         </DialogContent>
       </Dialog>
+      
       <Box
         sx={{
           position: 'absolute',
-          top: '20px',
-          left: '80px',
-          zIndex: 1000,
-          backgroundColor: 'transparent',
-          padding: '15px',
-          borderRadius: '8px',
-          maxWidth: '700px'
+          top: '10vh',
+          left: 0,
+          right: 0,
+          zIndex: 1200,
+          padding: '16px',
+          backgroundColor: 'transparent'
         }}
       >
-        <Typography
-          variant="h2"
-          sx={{
-            fontFamily: '"balloon", sans-serif',
-            color: 'red',
-            fontSize: isMobile ? '2em' : '4em',
-            lineHeight: 0.9,
-            marginBottom: '15px'
+        <FilterBar
+          onRegionChange={(e) => {
+            const region = e.target.value;
+            if (region) {
+              const mapRegions = {
+                'china': { center: [35.8617, 104.1954], zoom: 4 },
+                'usa': { center: [37.0902, -95.7129], zoom: 4 },
+                'france': { center: [46.2276, 2.2137], zoom: 5 },
+                'uk': { center: [55.3781, -3.4360], zoom: 5 },
+                'japan': { center: [36.2048, 138.2529], zoom: 5 }
+              };
+              if (mapRegions[region]) {
+                setMapRegionToFocus(mapRegions[region]);
+              }
+            } else {
+              setMapRegionToFocus({ center: [20, 0], zoom: 2 });
+            }
           }}
-        >
-          Archive of<br />Sino Women <br /> in Diaspora
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="🎈你在找的那只气球的编码是？"
-            size="small"
-            value={balloonIdSearch}
-            onChange={(e) => {
-              setBalloonIdSearch(e.target.value);
-              setSearchError('');
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                backdropFilter: 'blur(5px)',
-                '&:hover fieldset': {
-                  borderColor: 'red',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'red',
-                },
-              },
-            }}
-          />
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              backgroundColor: 'red',
-              '&:hover': { backgroundColor: '#c70000' },
-              minWidth: '40px',
-              height: '40px'
-            }}
-            onClick={() => {
-              if (!balloonIdSearch.trim()) {
-                setSearchError('请输入气球ID');
-                return;
-              }
-
-              // 查找对应ID的气球
-
-              <Box sx={{ position: 'absolute', top: isMobile ? 'auto' : '150px', bottom: isMobile ? '20px' : 'auto', left: isMobile ? '50%' : 'auto', transform: isMobile ? 'translateX(-50%)' : 'none', right: isMobile ? 'auto' : '20px', zIndex: 1000, width: isMobile ? '90%' : 'auto' }}>
-                <FilterBar
-                  onRegionChange={(e) => {
-                    const region = e.target.value;
-                    if (region) {
-                      const mapRegions = {
-                        'china': { center: [35.8617, 104.1954], zoom: 4 },
-                        'usa': { center: [37.0902, -95.7129], zoom: 4 },
-                        'france': { center: [46.2276, 2.2137], zoom: 5 },
-                        'uk': { center: [55.3781, -3.4360], zoom: 5 },
-                        'japan': { center: [36.2048, 138.2529], zoom: 5 }
-                      };
-                      if (mapRegions[region]) {
-                        setMapRegionToFocus(mapRegions[region]);
-                      }
-                    } else {
-                      // Optional: Reset view if no region is selected
-                      setMapRegionToFocus({ center: [20, 0], zoom: 2 });
-                    }
-                  }}
-                  onMoodChange={(e) => {
-                    // Implement mood filtering logic here
-                    console.log('Selected mood:', e.target.value);
-                  }}
-                />
-              </Box>
-              const foundIncident = incidents.find(inc => inc.id.toString() === balloonIdSearch.trim());
-
-              if (foundIncident) {
-                // 找到了气球，设置地图中心并打开气球的弹出窗口
-                if (foundIncident.lat && foundIncident.lng) {
-                  setMapRegionToFocus({
-                    center: [foundIncident.lat, foundIncident.lng],
-                    zoom: 10
-                  });
-                  setSelectedIncident(foundIncident);
-                }
-              } else {
-                setSearchError('我们没有找到这只气球 :(');
-              }
-            }}
-          >
-            🔍
-          </Button>
-        </Box>
-        {searchError && (
-          <Typography variant="caption" sx={{ color: 'red', mt: 1 }}>
-            {searchError}
-          </Typography>
-        )}
+          onMoodChange={(e) => {
+            console.log('Selected mood:', e.target.value);
+          }}
+        />
       </Box>
+
       <MapContainer
         center={[46.2276, 2.2137]}
         zoom={8}
         style={{
-          height: '80vh',
+          height: '100vh',
           backgroundColor: '#ffffff'
         }}
         minZoom={3}
@@ -571,7 +519,7 @@ function Map({ supabase }) {
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          zIndex: 9999,
+          zIndex: 999,
           pointerEvents: 'auto',
           width: '250px',
           height: '150px',
@@ -588,13 +536,14 @@ function Map({ supabase }) {
               style={{
                 width: '100px',
                 height: 'auto',
+                zIndex: 10,
                 cursor: 'pointer',
                 pointerEvents: 'auto'
               }}
             />
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              <Button
+              <CustomButton
                 variant="outlined"
                 onClick={() => setIsAddingMode(!isAddingMode)}
                 sx={{
@@ -613,14 +562,14 @@ function Map({ supabase }) {
                   }
                 }}
               >
-                选择一个原点，放飞你的气球
-              </Button>
-              <Button
+                点选一个原点，放飞你的气球
+              </CustomButton>
+              <CustomButton
                 variant="contained"
-                color="secondary"
                 sx={{
                   width: '280px',
                   height: '60px',
+                  backgroundColor: "rgba(0,0,0,0.2)",
                   borderRadius: '30px',
                   fontSize: '16px',
                   fontWeight: 'bold',
@@ -658,8 +607,8 @@ function Map({ supabase }) {
                   }
                 }}
               >
-                定位气球到我的城市 🌆
-              </Button>
+                定位气球到我的城市
+              </CustomButton>
             </Box>
           )}
         </div>}
@@ -668,7 +617,7 @@ function Map({ supabase }) {
             position={[tempMarker.latitude, tempMarker.longitude]}
             icon={new L.Icon({
               iconUrl: require('../assets/map_marker/regular-marker.png'),
-              iconSize: [55, 90],
+              iconSize: [60, 90],
               iconAnchor: [27, 45],
               className: 'marker-icon'
             })}
@@ -692,7 +641,12 @@ function Map({ supabase }) {
                 }
               }}
             >
-              <Popup>
+              <Popup
+                className="custom-popup"
+                options={{
+                  zIndexOffset: 1000
+                }}
+              >
                 <Typography
                   variant="subtitle1"
                   sx={{ color: 'red' }}
@@ -700,80 +654,133 @@ function Map({ supabase }) {
                   {incident.here_happened}
                 </Typography>
                 <Typography variant="body2">{incident.description}</Typography>
-                <Button
+                <CustomButton
                   size="small"
-                  variant="outlined"
-                  sx={{ mt: 1 }}
+                  sx={{ mt: 1, outline:'0.5px solid', color:'black'}}
                   onClick={() => {
-                    localStorage.setItem('selectedIncident', JSON.stringify(incident));
+                    localStorage.setItem(`selectedIncident_${incident.id}`, JSON.stringify(incident));
                     setSelectedIncident(incident);
                     window.open(`#/incident?id=${incident.id}`, '_blank');
                   }}
                 >
-                  我想了解更多
-                </Button>
+                  关于这则故事...
+                </CustomButton>
+              </Popup>
+            </Marker>
+          ) : null
+        ))}
+
+        {spaces.map((space) => (
+          space.lat && space.lng ? (
+            <Marker
+              key={`space-${space.id}`}
+              position={[space.lat, space.lng]}
+              icon={new L.Icon({
+                iconUrl: require('../assets/map_marker/resource-marker.png'),
+                iconSize: [25, 70],
+                iconAnchor: [27, 45]
+              })}
+              eventHandlers={{
+                click: () => {
+                  setSelectedSpace(space);
+                }
+              }}
+            >
+              <Popup
+                className="custom-popup"
+                options={{
+                  zIndexOffset: 1000
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{ color: '#2196f3' }}
+                >
+                  {space.name}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  {space.address}
+                </Typography>
+                {space.contact_phone && (
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                    电话: {space.contact_phone}
+                  </Typography>
+                )}
+                {space.email && (
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                    邮箱: {space.email}
+                  </Typography>
+                )}
+                {space.tags && (
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem', mt: 1 }}>
+                    标签: {space.tags}
+                  </Typography>
+                )}
+                <CustomButton
+                  size="small"
+                  sx={{ mt: 1, outline:'0.5px solid', color:'black'}}
+                  onClick={() => {
+                    window.open(`#/resources`, '_blank');
+                  }}
+                >
+                  查看更多资源...
+                </CustomButton>
               </Popup>
             </Marker>
           ) : null
         ))}
       </MapContainer>
       {showForm && (
-        <Box
+        <Stack spacing={1}
           sx={{
             position: isMobile ? 'absolute' : 'absolute',
-            top: isMobile ? '60vh' : 60,
-            right: isMobile ? 0 : 10,
+            top: isMobile ? '60vh' : '50%',
+            right: isMobile ? 0 : 20,
             left: isMobile ? 0 : 'auto',
-            zIndex: 1000,
-            backgroundColor: 'white',
-            padding: 2,
-            borderRadius: isMobile ? '25px 25px 0 0' : 25,
+            transform: isMobile ? 'none' : 'translateY(-50%)',
+            zIndex: 1200,
             width: isMobile ? '100%' : '400px',
             mt: 0,
-            boxShadow: 3,
             height: isMobile ? '40vh' : 'auto',
             overflowY: isMobile ? 'auto' : 'visible'
           }}
         >
-          <div style={{ padding: '15px' }}>
-            <Box sx={{ margin: 1 }}>
-              <Button
-                variant="contained"
-                color="error"
-                size="small"
-                sx={{
+          <div style={{ padding: '5px'}}>
+            <Accordion>
+              <AccordionSummary   
+                  expandIcon={<ArrowDownwardIcon />}
+                  aria-controls="panel1-content"
+                  id="panel1-header"
+                  sx={{
                   display: 'flex',
                   alignItems: 'center',
                   borderRadius: '4px',
                   width: '100%',
                   justifyContent: 'space-between',
-                  backgroundColor: '#9e0000',
-                  '&:hover': { backgroundColor: '#7b0000' }
+                  backgroundColor: 'rgba(255, 0, 17, 0.45)'
                 }}
-                onClick={() => {
-                  const infoElement = document.getElementById('info-content');
-                  if (infoElement) {
-                    infoElement.style.display = infoElement.style.display === 'none' ? 'block' : 'none';
-                  }
-                }}
-              >
-                <Typography variant="button" sx={{ fontWeight: 'bold' }}>⚠️ 小提示</Typography>
-                <span>+</span>
-              </Button>
-              <Box
-                id="info-content"
+                >
+                <Typography component="span">📝 信息</Typography>
+              </AccordionSummary>
+              <AccordionDetails
                 sx={{
-                  display: 'none',
-                  mt: 1,
-                  p: 1.5,
-                  backgroundColor: '#ffebee',
-                  borderRadius: '4px',
-                  fontSize: '0.9rem'
-                }}
-              >
-                填写完毕后可以下载你的气球，分享到自己的社交媒体:)
-              </Box>
-            </Box>
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                  justifyContent: 'space-between',
+                  backgroundColor: 'rgba(255, 0, 17, 0.25)'
+                }}>
+                <Typography>
+                  填写完毕后可以下载你的气球，分享到自己的社交媒体
+                </Typography>
+              </AccordionDetails>
+            </Accordion>
+          </div>
+          <div 
+          style={{ padding: '15px', position: 'relative',
+            backgroundColor: isMobile? 'white': 'rgba(204, 204, 204, 0.75)',
+            padding: 25,
+            borderRadius: isMobile ? 30 : 70, }}>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <Typography sx={{ whiteSpace: 'nowrap' }}>这里发生了...</Typography>
@@ -781,7 +788,14 @@ function Map({ supabase }) {
                 fullWidth
                 size="small"
                 value={newIncident.here_happened}
-                onChange={(e) => setNewIncident({ ...newIncident, here_happened: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 40) {
+                    setNewIncident({ ...newIncident, here_happened: value });
+                  }
+                }}
+                slotProps={{ input: { maxLength: 40 } }}
+                helperText={`${newIncident.here_happened.length}/40`}
               />
             </Box>
             <Box sx={{ mt: 3 }}>
@@ -866,8 +880,15 @@ function Map({ supabase }) {
                 multiline
                 rows={3}
                 value={newIncident.description}
-                onChange={(e) => setNewIncident({ ...newIncident, description: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 2000) {
+                    setNewIncident({ ...newIncident, description: value });
+                  }
+                }}
                 placeholder="在这里描述你的经历"
+                slotProps={{ input: { maxLength: 2000 } }}
+                helperText={`${newIncident.description.length}/2000`}
               />
             </Box>
             <Box sx={{ mt: 3 }}>
@@ -956,40 +977,13 @@ function Map({ supabase }) {
             )}
 
             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-              <Button variant="transparent" onClick={handleSubmit} sx={{ color: 'red', backgroundColor: 'transparent', fontFamily: 'balloon', fontSize: '2vh' }}>Submit</Button>
-              <Button variant="grey" onClick={handleCancel} sx={{ color: 'grey', fontFamily: 'balloon', fontSize: '2vh' }}>Cancel</Button>
+              <Button variant="transparent" onClick={handleSubmit} sx={{ color: 'red', backgroundColor: 'transparent', fontFamily: 'balloon', fontSize: '1.5vh' }}>Submit</Button>
+              <Button variant="grey" onClick={handleCancel} sx={{ color: 'grey', fontFamily: 'balloon', fontSize: '1.5vh' }}>Cancel</Button>
             </Box>
           </div>
-        </Box>
+        </Stack>
       )}
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
-        <FilterBar
-          onRegionChange={(e) => {
-            const region = e.target.value;
-            if (region) {
-              const mapRegions = {
-                'china': { center: [35.8617, 104.1954], zoom: 4 },
-                'usa': { center: [37.0902, -95.7129], zoom: 4 },
-                'france': { center: [46.2276, 2.2137], zoom: 5 },
-                'uk': { center: [55.3781, -3.4360], zoom: 5 },
-                'japan': { center: [36.2048, 138.2529], zoom: 5 }
-              };
-              if (mapRegions[region]) {
-                setMapRegionToFocus(mapRegions[region]);
-              }
-            } else {
-              // Optional: Reset view if no region is selected
-              setMapRegionToFocus({ center: [20, 0], zoom: 2 });
-            }
-          }}
-          onMoodChange={(e) => {
-            // Implement mood filtering logic here
-            console.log('Selected mood:', e.target.value);
-          }}
-        />
-        <RecentHarms incidents={incidents} />
-        <Contributors />
-      </div>
+
     </div>
   );
 }

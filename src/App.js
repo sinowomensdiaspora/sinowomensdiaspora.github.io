@@ -2,15 +2,18 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import Action from './pages/Action';
+import ActionArticle from './pages/ActionArticle';
 import Contributors from './components/Contributors';
 import Resources from './pages/Resources';
+import AddResource from './pages/AddResource';
 import About from './pages/About';
-import OneOfUs from './pages/OneOfUs';
 import Layout from './components/Layout';
 import Map from './components/Map';
 import IncidentInfo from './pages/IncidentInfo';
 import './App.css';
 import { IncidentProvider } from './context/IncidentContext';
+import StartupPage from './pages/StartupPage';
+import StoryArchive from './pages/StoryArchive';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
@@ -22,12 +25,15 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route path="/" element={<Map supabase={supabase} />} />
+            <Route path="/" element={<StartupPage />} />
+            <Route path="/map" element={<Map supabase={supabase} />} />
             <Route path="/incident" element={<IncidentInfo supabase={supabase} />} />
+            <Route path="/archive" element={<StoryArchive supabase={supabase} />} />
             <Route path="/action" element={<Action />} />
-            <Route path="/resources" element={<Action />} />
+            <Route path="/action/:id" element={<ActionArticle />} />
+            <Route path="/resources" element={<Resources supabase={supabase} />} />
+            <Route path="/resources/add" element={<AddResource supabase={supabase} />} />
             <Route path="/about" element={<About />} />
-            <Route path="/oneofus" element={<OneOfUs supabase={supabase} />} />
           </Routes>
         </Layout>
       </Router>

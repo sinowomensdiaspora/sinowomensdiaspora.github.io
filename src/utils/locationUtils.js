@@ -43,7 +43,7 @@ export const getAddressFromCoordinates = async (lat, lng) => {
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
       {
         headers: {
-          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8', // Prefer Chinese results
+          'Accept-Language': 'en-US,en;q=0.9', // Prefer English results
           'User-Agent': 'ChineseWomenDiaspora/1.0' // Required by Nominatim usage policy
         }
       }

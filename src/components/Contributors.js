@@ -6,6 +6,7 @@ import styled from 'styled-components';
 // 创建贡献者卡片组件
 const ContributorCard = styled(Box)({
   display: 'flex',
+  fontFamily:'Avenir',
   flexDirection: 'column',
   alignItems: 'flex-start',
   marginBottom: '20px',
@@ -44,7 +45,6 @@ function Contributors() {
           This project wouldn't have been possible without the care, creativity, and conversations shared by these wonderful collaborators:
         </Typography>
         
-        {/* 贡献者列表 */}
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
             <ContributorCard>
